@@ -3,16 +3,16 @@ import shutil
 import zipfile
 import aiohttp
 
-from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.core import HomeAssistant
 
 DOMAIN = "sem_installer"
 ZIP_URL = "https://github.com/Henrik1986/huawei-energy-managment/archive/refs/heads/main.zip"
 
 
-async def async_setup(hass: HomeAssistant, config: dict):
-    """Register service."""
+async def async_setup_entry(hass: HomeAssistant, entry):
+    """Körs när integrationen installeras via UI."""
 
-    async def install(call: ServiceCall):
+    async def install():
 
         base = hass.config.path()
 
@@ -21,25 +21,28 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
         target = os.path.join(base, "_sem_installer_test")
 
+        # ladda ner
         async with aiohttp.ClientSession() as session:
             async with session.get(ZIP_URL) as resp:
                 data = await resp.read()
                 with open(tmp_zip, "wb") as f:
                     f.write(data)
 
+        # packa upp
         shutil.rmtree(tmp_dir, ignore_errors=True)
-
         with zipfile.ZipFile(tmp_zip, "r") as z:
             z.extractall(tmp_dir)
 
+        # kopiera
         source = os.path.join(tmp_dir, "huawei-energy-managment-main/sem")
-
         shutil.rmtree(target, ignore_errors=True)
         shutil.copytree(source, target)
 
+        # städa
         os.remove(tmp_zip)
         shutil.rmtree(tmp_dir, ignore_errors=True)
 
-    hass.services.async_register(DOMAIN, "install", install)
+    # 🔥 KÖR INSTALL DIREKT (ingen service behövs!)
+    await install()
 
     return True
