@@ -5,30 +5,29 @@ DOMAIN = "sem_installer"
 
 
 class SemInstallerFlow(config_entries.ConfigFlow, domain=DOMAIN):
+    """Config flow for SEM Installer."""
 
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
+        """Start step with install button."""
 
         if user_input is not None:
 
+            # Kör installationen
             await self.hass.services.async_call(
-                "sem_installer",
+                DOMAIN,
                 "install"
             )
 
+            # Skapa config entry (markera som installerad)
             return self.async_create_entry(
                 title="SEM Installer",
-                data={}
+                data={"installed": True}
             )
 
+        # Enkel form (ingen title/description här!)
         return self.async_show_form(
             step_id="user",
-            description=(
-                "Denna integration används för att ladda ner filerna för energisystemet första gången.\n\n"
-                "Efter installation följer du instruktionerna via GitHub.\n"
-                "När systemet är igång kan du ta bort denna integration.\n\n"
-                "Systemet uppdateras därefter via energisystemet Hemvy."
-            ),
             data_schema=vol.Schema({})
         )
