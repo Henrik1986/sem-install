@@ -1,0 +1,3 @@
+install:
+  name: Install SEM package
+  description: Laddar ner och installerar till /config/packages/sem
