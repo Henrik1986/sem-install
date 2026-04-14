@@ -6,12 +6,11 @@ import aiohttp
 from homeassistant.core import HomeAssistant, ServiceCall
 
 DOMAIN = "sem_installer"
-
 ZIP_URL = "https://github.com/Henrik1986/huawei-energy-managment/archive/refs/heads/main.zip"
 
 
 async def async_setup(hass: HomeAssistant, config: dict):
-    """Register service at startup."""
+    """Register service."""
 
     async def install(call: ServiceCall):
 
