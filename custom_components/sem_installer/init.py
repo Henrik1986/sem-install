@@ -11,7 +11,7 @@ ZIP_URL = "https://github.com/Henrik1986/huawei-energy-managment/archive/refs/he
 
 
 async def async_setup_entry(hass: HomeAssistant, entry):
-    """Setup när integrationen läggs till via UI."""
+    """Körs när integrationen läggs till via UI."""
 
     async def install(call):
 
@@ -29,12 +29,12 @@ async def async_setup_entry(hass: HomeAssistant, entry):
                 with open(tmp_zip, "wb") as f:
                     f.write(data)
 
-        # 2. unzip
+        # 2. packa upp
         shutil.rmtree(tmp_dir, ignore_errors=True)
         with zipfile.ZipFile(tmp_zip, "r") as z:
             z.extractall(tmp_dir)
 
-        # 3. kopiera
+        # 3. kopiera sem-mappen
         source = os.path.join(tmp_dir, "huawei-energy-managment-main/sem")
 
         shutil.rmtree(target, ignore_errors=True)
@@ -44,7 +44,6 @@ async def async_setup_entry(hass: HomeAssistant, entry):
         os.remove(tmp_zip)
         shutil.rmtree(tmp_dir, ignore_errors=True)
 
-    # 🔥 REGISTRERA SERVICE HÄR
     hass.services.async_register(DOMAIN, "install", install)
 
     return True
