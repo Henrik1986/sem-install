@@ -3,6 +3,6 @@
   "name": "SEM Installer",
   "version": "1.0.0",
   "dependencies": [],
-  "codeowners": ["Henrik"]
+  "codeowners": ["Henrik"],
   "config_flow": true
 }
