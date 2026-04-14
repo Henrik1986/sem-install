@@ -15,7 +15,6 @@ _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass: HomeAssistant, entry):
     """Installer runs once per entry."""
 
-    # ✔ kör bara en gång
     if entry.data.get("installed"):
         _LOGGER.info("SEM already installed – skipping")
         return True
@@ -25,17 +24,14 @@ async def async_setup_entry(hass: HomeAssistant, entry):
     tmp_zip = os.path.join(base, "sem_tmp.zip")
     tmp_dir = os.path.join(base, "sem_tmp")
 
-    # 🧪 TESTMAPP (laddas inte av HA)
-    target_root = hass.config.path("_sem_installer_test")
-    target = os.path.join(target_root, "sem")
+    packages_dir = hass.config.path("packages")
+    os.makedirs(packages_dir, exist_ok=True)
+
+    target = os.path.join(packages_dir, "sem")
 
     try:
-        _LOGGER.info("SEM Installer: downloading package (TEST MODE)")
+        _LOGGER.info("SEM Installer: downloading package")
 
-        # skapa testmapp
-        os.makedirs(target_root, exist_ok=True)
-
-        # ladda ner zip
         async with aiohttp.ClientSession() as session:
             async with session.get(ZIP_URL) as resp:
                 if resp.status != 200:
@@ -45,8 +41,8 @@ async def async_setup_entry(hass: HomeAssistant, entry):
                 with open(tmp_zip, "wb") as f:
                     f.write(data)
 
-        # packa upp
         shutil.rmtree(tmp_dir, ignore_errors=True)
+
         with zipfile.ZipFile(tmp_zip, "r") as z:
             z.extractall(tmp_dir)
 
@@ -55,23 +51,20 @@ async def async_setup_entry(hass: HomeAssistant, entry):
         if not os.path.exists(source):
             raise Exception("Source folder missing in zip")
 
-        # rensa tidigare test
-        shutil.rmtree(target, ignore_errors=True)
+        if os.path.exists(target):
+            shutil.rmtree(target)
 
-        # kopiera sem
         shutil.copytree(source, target)
 
-        # cleanup
         os.remove(tmp_zip)
         shutil.rmtree(tmp_dir, ignore_errors=True)
 
-        # markera installerad
         hass.config_entries.async_update_entry(
             entry,
             data={**entry.data, "installed": True},
         )
 
-        _LOGGER.info("SEM Installer: installation complete (TEST MODE)")
+        _LOGGER.info("SEM Installer: installation complete")
 
     except Exception:
         _LOGGER.exception("SEM Installer failed")
