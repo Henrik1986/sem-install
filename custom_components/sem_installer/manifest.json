@@ -1,0 +1,7 @@
+{
+  "domain": "sem_installer",
+  "name": "SEM Installer",
+  "version": "1.0.0",
+  "dependencies": [],
+  "codeowners": ["@dittnamn"]
+}
