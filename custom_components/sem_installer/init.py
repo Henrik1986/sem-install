@@ -18,7 +18,8 @@ async def async_setup(hass: HomeAssistant, config: dict):
         tmp_zip = os.path.join(base, "sem_tmp.zip")
         tmp_dir = os.path.join(base, "sem_tmp")
 
-        target = os.path.join(base, "packages/sem")
+        # TESTMAPP (UTANFÖR packages)
+        target = os.path.join(base, "_sem_installer_test")
 
         # 1. ladda ner zip
         async with aiohttp.ClientSession() as session:
@@ -27,15 +28,18 @@ async def async_setup(hass: HomeAssistant, config: dict):
                 with open(tmp_zip, "wb") as f:
                     f.write(data)
 
-        # 2. unzip
+        # 2. packa upp
         shutil.rmtree(tmp_dir, ignore_errors=True)
         with zipfile.ZipFile(tmp_zip, "r") as z:
             z.extractall(tmp_dir)
 
-        # 3. kopiera ENDAST sem-mappen
+        # 3. kopiera sem-mappen
         source = os.path.join(tmp_dir, "huawei-energy-managment-main/sem")
 
+        # rensa gammal testdata
         shutil.rmtree(target, ignore_errors=True)
+
+        # skapa ny
         shutil.copytree(source, target)
 
         # 4. städa
