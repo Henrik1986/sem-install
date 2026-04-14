@@ -1,0 +1,11 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SEM Installer",
+        "description": "Denna integration installerar de filer som behövs för energisystemet. När energisystemet är igång kan du ta bort integrationen.",
+        "data": {}
+      }
+    }
+  }
+}
