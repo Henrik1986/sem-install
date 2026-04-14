@@ -13,11 +13,11 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass: HomeAssistant, entry):
-    """Installer runs once per config entry."""
+    """Installer runs once per entry."""
 
     # ✔ kör bara en gång
     if entry.data.get("installed"):
-        _LOGGER.info("SEM Installer: already installed – skipping")
+        _LOGGER.info("SEM already installed – skipping")
         return True
 
     base = hass.config.path()
@@ -25,49 +25,47 @@ async def async_setup_entry(hass: HomeAssistant, entry):
     tmp_zip = os.path.join(base, "sem_tmp.zip")
     tmp_dir = os.path.join(base, "sem_tmp")
 
-    # 🧪 TESTLÄGE (ingen HA-inläsning)
+    # 🧪 TESTMAPP (laddas inte av HA)
     target_root = hass.config.path("_sem_installer_test")
     target = os.path.join(target_root, "sem")
 
     try:
-        _LOGGER.info("SEM Installer: starting installation (TEST MODE)")
+        _LOGGER.info("SEM Installer: downloading package (TEST MODE)")
 
-        # 1. skapa testmapp
+        # skapa testmapp
         os.makedirs(target_root, exist_ok=True)
 
-        # 2. ladda ner zip
+        # ladda ner zip
         async with aiohttp.ClientSession() as session:
             async with session.get(ZIP_URL) as resp:
                 if resp.status != 200:
-                    raise Exception(f"Download failed: HTTP {resp.status}")
+                    raise Exception(f"Download failed: {resp.status}")
 
                 data = await resp.read()
                 with open(tmp_zip, "wb") as f:
                     f.write(data)
 
-        # 3. packa upp
+        # packa upp
         shutil.rmtree(tmp_dir, ignore_errors=True)
-
         with zipfile.ZipFile(tmp_zip, "r") as z:
             z.extractall(tmp_dir)
 
         source = os.path.join(tmp_dir, "huawei-energy-managment-main/sem")
 
         if not os.path.exists(source):
-            raise Exception("SEM folder not found in repository zip")
+            raise Exception("Source folder missing in zip")
 
-        # 4. rensa tidigare test
-        shutil.rmtree(target_root, ignore_errors=True)
-        os.makedirs(target_root, exist_ok=True)
+        # rensa tidigare test
+        shutil.rmtree(target, ignore_errors=True)
 
-        # 5. kopiera endast sem
+        # kopiera sem
         shutil.copytree(source, target)
 
-        # 6. städa temporära filer
+        # cleanup
         os.remove(tmp_zip)
         shutil.rmtree(tmp_dir, ignore_errors=True)
 
-        # 7. markera installerad
+        # markera installerad
         hass.config_entries.async_update_entry(
             entry,
             data={**entry.data, "installed": True},
