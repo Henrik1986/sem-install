@@ -1,4 +1,1 @@
 install:
-  name: Install SEM package
-  description: Laddar ner och installerar SEM-paketet till /config/packages/sem. Körs endast en gång vid installation.
-  fields: {}
