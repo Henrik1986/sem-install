@@ -25,9 +25,13 @@ async def async_setup_entry(hass: HomeAssistant, entry):
     tmp_dir = os.path.join(base, "sem_tmp")
 
     packages_dir = hass.config.path("packages")
-    os.makedirs(packages_dir, exist_ok=True)
+    dashboards_dir = hass.config.path("dashboards")
 
-    target = os.path.join(packages_dir, "sem")
+    os.makedirs(packages_dir, exist_ok=True)
+    os.makedirs(dashboards_dir, exist_ok=True)
+
+    target_backend = os.path.join(packages_dir, "sem")
+    target_frontend = dashboards_dir
 
     try:
         _LOGGER.info("SEM Installer: downloading package")
@@ -46,15 +50,40 @@ async def async_setup_entry(hass: HomeAssistant, entry):
         with zipfile.ZipFile(tmp_zip, "r") as z:
             z.extractall(tmp_dir)
 
-        source = os.path.join(tmp_dir, "huawei-energy-managment-main/sem")
+        base_extracted = os.path.join(tmp_dir, "huawei-energy-managment-main")
 
-        if not os.path.exists(source):
-            raise Exception("Source folder missing in zip")
+        # ------------------------
+        # BACKEND INSTALL
+        # ------------------------
+        source_backend = os.path.join(base_extracted, "sem")
 
-        if os.path.exists(target):
-            shutil.rmtree(target)
+        if not os.path.exists(source_backend):
+            raise Exception("Backend source missing in zip")
 
-        shutil.copytree(source, target)
+        if os.path.exists(target_backend):
+            shutil.rmtree(target_backend)
+
+        shutil.copytree(source_backend, target_backend)
+
+        # ------------------------
+        # FRONTEND INSTALL
+        # ------------------------
+        source_frontend = os.path.join(base_extracted, "dashboards")
+
+        if not os.path.exists(source_frontend):
+            _LOGGER.warning("Frontend folder missing in zip – skipping UI install")
+        else:
+            # kopiera innehåll (inte overwrite hela dashboards-mappen)
+            for item in os.listdir(source_frontend):
+                s = os.path.join(source_frontend, item)
+                d = os.path.join(target_frontend, item)
+
+                if os.path.isdir(s):
+                    if os.path.exists(d):
+                        shutil.rmtree(d)
+                    shutil.copytree(s, d)
+                else:
+                    shutil.copy2(s, d)
 
         os.remove(tmp_zip)
         shutil.rmtree(tmp_dir, ignore_errors=True)
